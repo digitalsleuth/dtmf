@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 A python implementation of the Goertzel algorithm to decode DTMF tones.
 The wave file is split into bins and each bin is analyzed
@@ -7,6 +9,8 @@ representation of the DTMF tone.
 import wave
 import struct
 import math
+import sys
+
 class pygoertzel_dtmf:
     def __init__(self, samplerate):
         self.samplerate = samplerate
@@ -93,7 +97,7 @@ class pygoertzel_dtmf:
         return self.__get_number(freqs)
 if __name__ == '__main__':
     # load wav file
-    wav = wave.open('/home/michael/Downloads/dtmf.wav', 'r')
+    wav = wave.open(sys.argv[1], 'r')
     (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
     frames = wav.readframes(nframes * nchannels)
     # convert wave file to array of integers
@@ -110,14 +114,17 @@ if __name__ == '__main__':
     binsize_split = 4
     prevvalue = ""
     prevcounter = 0
-    for i in range(0,len(left)-binsize,binsize/binsize_split):
+    tones = []
+    print("Reading WAV file for DTMF tones, please wait...")
+    for i in range(0,len(left)-binsize,int(binsize/binsize_split)):
         goertzel = pygoertzel_dtmf(framerate)
         for j in left[i:i+binsize]:
             value = goertzel.run(j)
         if value==prevvalue:
             prevcounter+=1
             if prevcounter==10:
-                print value
+                tones.append(value)
         else:
             prevcounter=0
             prevvalue=value
+    print(''.join(tones))
